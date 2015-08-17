@@ -5,6 +5,7 @@ require(phyloseq)
 require(genefilter)
 require(ape)
 require(ggplot2)
+library()
 setwd("~/Documents/SD1/SD1_analyses/")
 c=read.csv("input_files//filtered_otutable.csv", h=T, row.names=1)
 c=c[5:NCOL(c)]
@@ -16,14 +17,14 @@ d=cbind.data.frame(s,b)
 check=cbind(row.names(d), d[1:1])
 experimental=d[d$Timepoint %in% c("one", "two", "three", "dose"),]
 d=experimental
-c=d[11:NCOL(d)]
+c=d[14:NCOL(d)]
 c=t(c)
 rs = rowSums (c)
 use = (rs > 0)
 c = c [ use, ]
 
-s=d[0:10]
-row.names(s)=s$Sample.name
+s=d[0:13]
+row.names(s)=s$Sample_name
 s=s[2:NCOL(s)]
 
 
@@ -31,7 +32,7 @@ s=s[2:NCOL(s)]
 dds =DESeqDataSetFromMatrix(countData = c, colData=s, 
                              design= ~ final_disease_state)
 
-colData(dds)$Disease_state = factor(colData(dds)$final_disease_state, levels=c("Healthy","Diseased"))
+colData(dds)$final_disease_state = factor(colData(dds)$final_disease_state, levels=c("Healthy","Diseased"))
 
 #calculate different geometric means because of zeros.
 gm_mean=function(row) if (all(row == 0)) 0 else exp(mean(log(row[row != 0])))
@@ -41,6 +42,7 @@ geoMeans = apply(c, 1, gm_mean)
 dds = estimateSizeFactors(dds, geoMeans=geoMeans, locfunc=shorth)
 
 comm.normalized=(counts(dds, normalized=TRUE))
+colnames(comm.normalized)=colnames(c)
 row.names(comm.normalized)=row.names(c)
 otus=(comm.normalized)
 otus=as.data.frame(otus)
@@ -63,14 +65,14 @@ physeq = phyloseq(OTU, TAX, DAT, TREE)
 #use raw counts
 #make into phyloseq object
 TREE= tree
-OTU = otu_table(c, taxa_are_rows = TRUE)
+OTU2 = otu_table(c, taxa_are_rows = TRUE)
 TAX = tax_table(t)
 DAT= sample_data(s)
-physeq = phyloseq(OTU, TAX, DAT, TREE)
+physeq2 = phyloseq(OTU2, TAX, DAT, TREE)
 
-plot_richness(physeq, x="Timepoint", measures=c("Chao1", "Shannon", "Simpson"), color="final_disease_state")
-physeq$Timepoint2 = factor(physeq$Timepoint, c("dose", "one", "two", "three"))
-sample_data(physeq)$Timepoint = factor(sample_data(physeq)$Timepoint, levels = c("dose", "one", "two", "three"))
+plot_richness(t3_physeq2, x="T3_disease_state", measures=c("Chao1", "Shannon", "Simpson"), color="Dose_disease_state")
+t3_physeq2=subset_samples(physeq2, Timepoint=="three")
+sample_data(physeq2)$Timepoint = factor(sample_data(physeq)$Timepoint, levels = c("dose", "one", "two", "three"))
 
 filt = filter_taxa(physeq, function(x) sum(x > 0) > (0.1*length(x)), TRUE)
 
@@ -117,6 +119,34 @@ print(plist[["binomial"]])
 print(plist[["-1"]])
 print(plist[["wb"]])
 print(plist[["gl"]])
+
+#distance methods on subsets of data.
+
+filtt2 = subset_samples(filt, Timepoint=="two")
+filtt2d = subset_samples(filtt2, T3_disease_state=="Diseased")
+Dist <- distance(filtt2d, method = "bray")
+# Calculate ordination
+MDS <- ordinate(filtt2d, "NMDS", "wb")
+
+plot_ordination(filtt2d, MDS, type="samples", color="T3_time_d", shape="Dose")
+
+filtt3 = subset_samples(filt, Timepoint=="three")
+filtt3d = subset_samples(filtt3, T3_disease_state=="Diseased")
+
+# Calculate ordination
+MDS <- ordinate(filtt3d, "NMDS", "jsd")
+
+plot_ordination(filtt3d, MDS, type="samples", color="Dose.Site", shape="Dose")
+
+filtt2h = subset_samples(filtt2, Dose_disease_state=="Healthy")
+
+# Calculate ordination
+MDS <- ordinate(filtt2h, "NMDS", "jsd")
+
+plot_ordination(filtt2h, MDS, type="samples", color="Dose.Site", shape="Dose")
+
+
+
 
 
 #bar_plots
@@ -228,9 +258,13 @@ write.csv(as.data.frame(filtdf), file="ten_percent_filtered_otutable.csv")
 #tree
 top100=prune_taxa(names(sort(taxa_sums(filt), TRUE))[1:100], filt)
 
-plot_tree(filtoe, color="family")
+plv=subset_taxa(physeq, order==c("Pasteurellales", "Vibrionales"))
 
-plot_tree(filtoe, size="abundance", color = "T3_disease_state", shape = "Timepoint")
+p2=subset_samples(p, Timepoint=="two")
+
+plot_tree(plv, color="T3_disease_state", size="abundance", label.tips="taxa_names")
+
+plot_tree(filtoe, size="abundance", color = "dose_disease_state", shape = "Timepoint")
 
 plot_tree(, size="abundance", color = "T3_disease_state", 
           shape = "Timepoint", ladderize = "left") + coord_polar(theta = "y")

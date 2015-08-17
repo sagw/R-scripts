@@ -2,34 +2,53 @@ rm(list=ls())
 require(lme4)
 require(afex)
 require(ggplot2)
+require(plyr)
+require(lsmeans)
+require(multcompView)
 setwd("~/Documents/SD1/Sample_info/")
 dataglm=read.csv("Transmission_data.csv", header=T)
-dataglm<-as.data.frame(dataglm)
+dataglm=as.data.frame(dataglm)
+
+endoglm=merge(b1tendo, dataglm, by.x="row.names", by.y="Sample")
+
+endoglm$count=as.numeric(endoglm$count)
+
+endod=subset(endoglm, Dose=="Disease")
+endolm=lm(Time_survived ~ count*Tank , endod)
+dotplot(Time_survived~Genotype, Diseased, las=2, cex.axis=0.5)
 
 #Diseased vs healthy (binomial)
-mixed(Disease_state.1 ~ Dose + Site_dose + Site_collected + Site_dose:Site_collected + Dose:Site_dose + Tank + (1|Genotype),
-      data = dataglm, family=binomial, type=3, method="LRT")
+mixed=mixed(Disease_state.1 ~  Dose*Site_dose*Site_collected+
+    (1|Tank)+(1|Genotype), data=dataglm, method="LRT", type=3)
 
-#time_survived.
-mixed(Time_survived ~ Dose + Site_dose + Site_collected + Dose:Site_dose +Site_dose:Site_collected + (1|Genotype) + (1|Tank), 
+lsmeans(mixeds,  cld~  Dose*Site_dose)
+lsmip(mixeds,~  Dose*Site_dose)
+
+hsd=HSD.test(mixed, trt= "Dose:Site_dose:Site_collected", group="TRUE")
+mixed=mixed(Disease_state.1 ~  Dose+Site_dose+ Dose:Site_dose+
+              (1|Tank)+(1|Genotype), data=dataglm, method="LRT", type=3)
+
+
+#time_survived
+mixeds=mixed(Time_survived ~ Dose*Site_dose*Site_collected + (1|Tank) + (1|Genotype), 
       data = dataglm, type=3, method="LRT")
 
-
 Diseased<-subset(dataglm, Dose=="Disease" & Disease_state=="Diseased")
-mixed(Time_diseased ~ Site_dose + Site_collected + Site_dose:Site_collected+ (1|Genotype) + (1|Tank), 
-      data = Diseased, type=3, method="LRT")
+Diseased<-subset(dataglm, Dose=="Disease")
+mixed(Time_diseased ~ Site_dose*Site_collected+ (1|Genotype) + (1|Tank), 
+      data = Diseased)
 
 # group by Treatment and Family, calculate mean abundance and standard deviation
-avgs <- ddply(dataglm, c("Site_dose", "Dose"), summarise, mean=mean(Time_survived))
+avgs = ddply(Diseased, c("Site_dose", "Disease_state"), summarise, mean=mean(Time_survived))
 
 # plot bar graph with standard deviation as error bars
-means.barplot=qplot(y=mean, x=Dose, fill=Site_dose,
+means.barplot=qplot(y=mean, x=Disease_state, fill=Site_dose,
                     data=avgs, geom="bar", stat="identity",
                     position="dodge")
 
 means.barplot
 
-means.sem <- ddply(dataglm, c("Dose", "Site_dose"), summarise,
+means.sem <- ddply(Diseased, c("Disease_state", "Site_dose"), summarise,
                    mean=mean(Time_survived), sem=sd(Time_survived)/sqrt(length(Time_survived)))
 means.sem <- transform(means.sem, lower=mean-sem, upper=mean+sem)
 
