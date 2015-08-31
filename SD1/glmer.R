@@ -9,14 +9,6 @@ setwd("~/Documents/SD1/Sample_info/")
 dataglm=read.csv("Transmission_data.csv", header=T)
 dataglm=as.data.frame(dataglm)
 
-endoglm=merge(b1tendo, dataglm, by.x="row.names", by.y="Sample")
-
-endoglm$count=as.numeric(endoglm$count)
-
-endod=subset(endoglm, Dose=="Disease")
-endolm=lm(Time_survived ~ count*Tank , endod)
-dotplot(Time_survived~Genotype, Diseased, las=2, cex.axis=0.5)
-
 #Diseased vs healthy (binomial)
 mixed=mixed(Disease_state.1 ~  Dose*Site_dose*Site_collected+
     (1|Tank)+(1|Genotype), data=dataglm, method="LRT", type=3)
@@ -70,3 +62,12 @@ mixed(Disease_state.1 ~ Site_dose + Site_collected + (1|Genotype) + (1|Tank/Samp
 summary(mod.lme4)
 aov4(mod.lme4)
 rand(mod.lme4)
+
+
+endoglm=merge(b1tendo, dataglm, by.x="row.names", by.y="Sample")
+
+endoglm$count=as.numeric(endoglm$count)
+
+endod=subset(endoglm, Dose=="Disease")
+endolm=lm(Time_survived ~ count*Tank , endod)
+dotplot(Time_survived~Genotype, Diseased, las=2, cex.axis=0.5)
