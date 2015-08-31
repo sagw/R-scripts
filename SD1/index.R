@@ -19,10 +19,9 @@ rs = rowSums (c)
 use = (rs > 0)
 c = c [ use, ]
 
-c=t(c)
 s=d[0:14]
 
-
+#normalize using deseq
 dds <-DESeqDataSetFromMatrix(countData = c, colData=s, 
                              design= ~ T3_disease_state)
 
@@ -38,11 +37,12 @@ dds = estimateSizeFactors(dds, geoMeans=geoMeans, locfunc=shorth)
 comm.normalized=t(counts(dds, normalized=TRUE))
 
 row.names(comm.normalized)=colnames(c)
+comm.normalized=t(comm.normalized)
 
 #import the filtered to 20,000 otus
 filtered=read.csv("input_files/otus_filtered20000.csv", h=T, row.names=1)
 
-commfilt=merge(filtered, t(comm.normalized), by.x="OTUID", by.y="row.names")
+commfilt=merge(filtered, comm.normalized, by.x="OTUID", by.y="row.names")
 row.names(commfilt)=commfilt$OTUID
 commfilt=commfilt[6:NCOL(commfilt)]
 commfilt=t(commfilt)
@@ -207,10 +207,15 @@ filtphyotuthree200=subset(cd3, (row.names(cd3) %in% allposnohtphy200$Row.names))
 filtphyotuall200=cbind(filtphyotuthree200, filtphyotu200)
 write.csv(filtphyotuall200, file="Output_files/filtphyotutableall200.csv")
 
+"New.ReferenceOTU21033", "New.ReferenceOTU25985"39471, "2373263"39460, "New.ReferenceOTU28484"19986, "New.ReferenceOTU26314"19986
+"New.ReferenceOTU14529"32868, "New.ReferenceOTU16534"39482
+getMRCA(tree, c( "New.ReferenceOTU21033","New.ReferenceOTU25985", "2373263", "New.ReferenceOTU16534"))
 
-getMRCA(tree, c("New.ReferenceOTU21033", "New.ReferenceOTU25985"))
+getMRCA(tree, c( "New.ReferenceOTU25985", "New.ReferenceOTU16534"))
+24627
+
 pasttree=extract.clade(tree, 39471)
-plot.phylo(pasttree, show.tip.label=TRUE)
+plot.phylo(pasttree, show.tip.label=TRUE, cex=0.5)
 tiplabels(text=c("21033", ""), tip=c(20, 138))
 
 pastclade=pasttree$tip.label
@@ -227,5 +232,30 @@ dnorm=dnorm[order(dnorm$T3_disease_state, dnorm$Timepoint ),]
 otu=dnorm[,14:NCOL(dnorm)]
 row.names(otu)=dnorm$Sample_name
 otu=t(otu)
-pastcladeotu=subset(otu, (row.names(otu) %in% pastclade$pastclade))
-write.csv(pastcladeotu, file="Output_files/pastcladeotu.csv")
+pastcladeotu=subset(combined, (row.names(combined) %in% pastclade$pastclade))
+write.csv(pastcladeotu, file="Output_files/pastcladeotu12_s.csv")
+
+
+##redo with silva tree 
+trees=read.tree(file="input_files/rep_set_filtered20000_silva_phylogeny.tre")
+  19986, "New.ReferenceOTU26314"19986
+32868
+getMRCA(trees, c( "New.ReferenceOTU21033","New.ReferenceOTU25985", "2373263", 
+                  "New.ReferenceOTU16534", "New.ReferenceOTU28484", "New.ReferenceOTU26314",
+                  "New.ReferenceOTU14529"))
+
+getMRCA(trees, c(  "2373263", "New.ReferenceOTU14529", "New.ReferenceOTU16534" ))
+
+pasttree=extract.clade(trees, 31178)
+plot.phylo(pasttree, show.tip.label=TRUE, cex=0.5)
+tiplabels(text=c("o", "o", "o", "o", "o", "o", "o"), tip=c(3, 14, 47, 51, 119, 181, 186), cex=0.5)
+
+pastclade=pasttree$tip.label
+pastclade=as.data.frame(pastclade)
+
+ts=read.csv("input_files/rep_set_tax_assignments_silva2.csv", header=F)
+colnames(ts)=c("OTUID", "kingdom", "phylum", "class", "order", "family", "genus", "species", "evalue", "ref")
+
+pastcladet=merge(pastclade, ts, by.x="pastclade", by.y="OTUID")
+
+write.tree(pasttree, file="Output_files/pasttree_s.tre")
