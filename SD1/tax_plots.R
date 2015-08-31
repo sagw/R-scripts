@@ -28,7 +28,7 @@ timetwo=d[d$Timepoint=="two",]
 timethree=d[d$Timepoint=="three",]
 
 
-d1=timeone
+d1=experimental
 c1=d1[13:NCOL(d1)]
 s1=d1[0:12]
 
