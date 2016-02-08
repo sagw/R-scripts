@@ -168,14 +168,14 @@ plotCK4alltime
 dev.off()
 
 ##plot all timepoints CK14
-pdf(file="Output_files/Taxonomy_plots/sFamily_CK14.pdf", width=10, height=16)
+pdf(file="Output_files/Taxonomy_plots/ggOrder_CK14.pdf", width=10, height=14)
 plotCK14alltime=ggplot(data=CK14alltime, aes(x=Coral, y=Taxonomy )) +
   geom_point(aes(size=Counts,color=Taxonomy)) +
   scale_colour_discrete(guide=FALSE)+
   scale_size_continuous(range=c(0,16)) + theme_bw()+theme(legend.position = "left") +
   ggtitle("CK14 corals")
 plotCK14alltime=plotCK14alltime + facet_grid (Timepoint+T3_disease_state+Dose_disease_state~Genotype, scales="free_x") +
-  theme(axis.text.y = element_text(color=ggplotColours(n=16)))+ 
+  theme(axis.text.y = element_text(color=ggplotColours(n=14)))+ 
   theme(axis.text.x = element_blank())
 
 plotCK14alltime
