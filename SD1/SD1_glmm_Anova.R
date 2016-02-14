@@ -30,6 +30,9 @@ check=cbind(row.names(d), d[1:1])
 #remove past data
 d[13]=NULL
 
+s2=d[0:12]
+write.csv(s2, "input_files/SD1_map_clean.csv")
+
 experimental=d[d$Timepoint %in% c("two", "three"),]
 
 d1=experimental
@@ -66,25 +69,25 @@ pseudo.rsq <- function(m) {
   return(as.numeric(r2$estimate))
 }
 
-#make empty dataframe for pvalues
-allpvalues_qp2 =matrix(NA,nrow=17,ncol=nrow(c2norm))
-colnames(allpvalues_qp2)=row.names(c2norm)
 
-allrsquare_qp2 =matrix(NA,nrow=1,ncol=nrow(c2norm))
-colnames(allrsquare_qp2)=row.names(c2norm)
-)
-##test with three otus
-#full model
-for (i in 69964:nrow(c2norm)) {
+#make empty dataframe for pvalues
+allpvalues_qps =matrix(NA,nrow=16,ncol=nrow(c2norm))
+colnames(allpvalues_qps)=row.names(c2norm)
+
+allrsquare_qps =matrix(NA,nrow=1,ncol=nrow(c2norm))
+colnames(allrsquare_qps)=row.names(c2norm)
+
+##run glmm and Anova
+for (i in 1:nrow(c2norm)) {
   tryCatch({
   vec = as.numeric(c2norm[i,])
   combined=cbind.data.frame(s1, vec)
-  glmtest2=glmmPQL(vec ~ T3_disease_state*Dose_disease_state + Site*Dose_disease_state*Timepoint*Dose_Site,
-                   random = ~1|Dose/Timepoint, data=combined, family = "quasipoisson")
-  anovaglm=as.data.frame(Anova(glmtest2, test="Chisq", error.estimate="dispersion"))
+  glmtest2=glmmPQL(vec ~ T3_disease_state + Site*Dose_disease_state*Timepoint*Dose_Site,
+                   random = ~1|Dose/Timepoint, data=combined, family = "quasipoisson", verbose=FALSE)
+  anovaglm=as.data.frame(Anova(glmtest2, test="Chisq", error.estimate="dispersion", type=c("III")))
   colnames(anovaglm)=c("chisq", "df", "pvalue")
   rsquare=pseudo.rsq(glmtest2)
-  allrsquare_qp[,i]=rsquare
+  allrsquare_qps[,i]=rsquare
   anovaglm$effect=row.names(anovaglm)
   pvalues=anovaglm$pvalue
   pvalues=as.data.frame(pvalues)
@@ -97,35 +100,35 @@ for (i in 69964:nrow(c2norm)) {
   Site_p=pvalues[,"Site"]
   Timepoint_p=pvalues[,"Timepoint"]
   Dose_Site_p=pvalues[,"Dose_Site"]
-  T3_disease_state_Dose_disease_state_p=pvalues[,"T3_disease_state:Dose_disease_state"]
-  Dose_disease_state_Site_p=pvalues[,"Dose_disease_state:Site"]
+  Site_Dose_disease_state_p=pvalues[,"Site:Dose_disease_state"]
   Site_Timepoint_p=pvalues[,"Site:Timepoint"]
   Dose_disease_state_Timepoint_p=pvalues[,"Dose_disease_state:Timepoint"]
   Site_Dose_Site_p=pvalues[,"Site:Dose_Site"]
   Dose_disease_state_Dose_Site_p=pvalues[,"Dose_disease_state:Dose_Site"]
   Timepoint_Dose_Site_p=pvalues[,"Timepoint:Dose_Site"]
-  Dose_disease_state_Site_Timepoint_p=pvalues[,"Dose_disease_state:Site:Timepoint"]
-  Dose_disease_state_Site_Dose_Site_p=pvalues[,"Dose_disease_state:Site:Dose_Site"]
+  Site_Dose_disease_state_Timepoint_p=pvalues[,"Site:Dose_disease_state:Timepoint"]
+  Site_Dose_disease_state_Dose_Site_p=pvalues[,"Site:Dose_disease_state:Dose_Site"]
   Site_Timepoint_Dose_Site_p=pvalues[,"Site:Timepoint:Dose_Site"]
   Dose_disease_state_Timepoint_Dose_Site_p=pvalues[,"Dose_disease_state:Timepoint:Dose_Site"]
-  Dose_disease_state_Site_Timepoint_Dose_Site_p=pvalues[,"Dose_disease_state:Site:Timepoint:Dose_Site"]
+  Site_Dose_disease_state_Timepoint_Dose_Site_p=pvalues[,"Site:Dose_disease_state:Timepoint:Dose_Site"]
   
-  allpvalues_qp2[,i] = c(T3_disease_state_p, Dose_disease_state_p, Site_p,Timepoint_p,
-                        Dose_Site_p, T3_disease_state_Dose_disease_state_p,  Dose_disease_state_Site_p,
+  allpvalues_qps[,i] = c(T3_disease_state_p, Dose_disease_state_p, Site_p,Timepoint_p,
+                        Dose_Site_p, Site_Dose_disease_state_p,
                         Site_Timepoint_p, Dose_disease_state_Timepoint_p, Site_Dose_Site_p,
-                        Dose_disease_state_Dose_Site_p, Timepoint_Dose_Site_p, Dose_disease_state_Site_Timepoint_p,
-                        Dose_disease_state_Site_Dose_Site_p, Site_Timepoint_Dose_Site_p, 
-                        Dose_disease_state_Timepoint_Dose_Site_p, Dose_disease_state_Site_Timepoint_Dose_Site_p)
+                        Dose_disease_state_Dose_Site_p, Timepoint_Dose_Site_p, Site_Dose_disease_state_Timepoint_p,
+                         Site_Dose_disease_state_Dose_Site_p, Site_Timepoint_Dose_Site_p, 
+                        Dose_disease_state_Timepoint_Dose_Site_p, Site_Dose_disease_state_Timepoint_Dose_Site_p)
   
   }, error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 }
 
-rownames(allpvalues_qp2) = c("T3_disease_state_p", "Dose_disease_state_p", "Site_p","Timepoint_p",
-                            "Dose_Site_p", "T3_disease_state_Dose_disease_state_p",  "Dose_disease_state_Site_p",
-                            "Site_Timepoint_p", "Dose_disease_state_Timepoint_p", "Site_Dose_Site_p",
-                            "Dose_disease_state_Dose_Site_p", "Timepoint_Dose_Site_p", "Dose_disease_state_Site_Timepoint_p",
-                            "Dose_disease_state_Site_Dose_Site_p", "Site_Timepoint_Dose_Site_p", 
-                            "Dose_disease_state_Timepoint_Dose_Site_p", "Dose_disease_state_Site_Timepoint_Dose_Site_p")
+rownames(allpvalues_qps) = c("T3_disease_state_p", "Dose_disease_state_p", "Site_p", "Timepoint_p",
+                             "Dose_Site_p", "Site_Dose_disease_state_p",
+                             "Site_Timepoint_p", "Dose_disease_state_Timepoint_p", "Site_Dose_Site_p",
+                             "Dose_disease_state_Dose_Site_p", "Timepoint_Dose_Site_p", "Site_Dose_disease_state_Timepoint_p",
+                             "Site_Dose_disease_state_Dose_Site_p", "Site_Timepoint_Dose_Site_p", 
+                             "Dose_disease_state_Timepoint_Dose_Site_p", "Site_Dose_disease_state_Timepoint_Dose_Site_p")
+
 
 allpvalues_complete=cbind(allpvalues_qp[,1:69964], allpvalues_qp2[,69965:NCOL(allpvalues_qp2)])
 allrsquare_qp=as.data.frame(allrsquare_qp)
@@ -196,9 +199,9 @@ Timepoint_sigOTUs=as.data.frame(Timepoint_sigOTUs)
 Timepoint_sigOTUs$OTUID=row.names(Timepoint_sigOTUs)
 Timepoint_sigOTUs_tax=merge(Timepoint_sigOTUs, ts, by="OTUID")
 Timepoint_sigOTUs_alltax=merge(Timepoint_sigOTUs_tax, tgg, by="OTUID")
-T3_disease_state_sigOTUs_alltaxr=merge(T3_disease_state_sigOTUs_alltax, allrsquare_complete, by.x="OTUID", by.y="row.names")
-colnames(T3_disease_state_sigOTUs_alltaxr)[19]=c("pseudor2")
-write.csv(Timepoint_sigOTUs_alltax, file="Output_files/Timepoint_sigOTUs_alltax.csv")
+Timepoint_sigOTUs_alltaxr=merge(Timepoint_sigOTUs_alltax, allrsquare_complete, by.x="OTUID", by.y="row.names")
+colnames(Timepoint_sigOTUs_alltaxr)[19]=c("pseudor2")
+write.csv(Timepoint_sigOTUs_alltax, file="Timepoint_sigOTUs_alltax.csv")
 
 #Dose_Site
 Dose_Site= as.matrix(allpvalues_complete[,5])
@@ -240,21 +243,21 @@ Dose_disease_state_Site_sigOTUs_tax=merge(Dose_disease_state_Site_sigOTUs, ts, b
 Dose_disease_state_Site_sigOTUs_alltax=merge(Dose_disease_state_Site_sigOTUs_tax, tgg, by="OTUID")
 Dose_disease_state_Site_sigOTUs_alltaxr=merge(Dose_disease_state_Site_sigOTUs_alltax, allrsquare_complete, by.x="OTUID", by.y="row.names")
 colnames(Dose_disease_state_Site_sigOTUs_alltaxr)[19]=c("pseudor2")
-write.csv(Dose_disease_state_Site_sigOTUs_alltax, file="Output_files/Dose_disease_state_Site_sigOTUs_alltax.csv")
+write.csv(Dose_disease_state_Site_sigOTUs_alltax, file="Dose_disease_state_Site_sigOTUs_alltax.csv")
 
-#Dose_disease_state_Site
-Dose_disease_state_Site= as.matrix(allpvalues_complete[,8])
-Dose_disease_state_Site_padj=as.matrix(p.adjust(Dose_disease_state_Site, method="fdr"))
-colnames(Dose_disease_state_Site_padj)=c("padj")
-row.names(Dose_disease_state_Site_padj)=row.names(allpvalues_complete)
-Dose_disease_state_Site_sigOTUs=subset(Dose_disease_state_Site_padj, Dose_disease_state_Site_padj<0.05)
-Dose_disease_state_Site_sigOTUs=as.data.frame(Dose_disease_state_Site_sigOTUs)
-Dose_disease_state_Site_sigOTUs$OTUID=row.names(Dose_disease_state_Site_sigOTUs)
-Dose_disease_state_Site_sigOTUs_tax=merge(Dose_disease_state_Site_sigOTUs, ts, by="OTUID")
-Dose_disease_state_Site_sigOTUs_alltax=merge(Dose_disease_state_Site_sigOTUs_tax, tgg, by="OTUID")
-Dose_disease_state_Site_sigOTUs_alltaxr=merge(Dose_disease_state_Site_sigOTUs_alltax, allrsquare_complete, by.x="OTUID", by.y="row.names")
-colnames(Dose_disease_state_Site_sigOTUs_alltaxr)[19]=c("pseudor2")
-write.csv(Dose_disease_state_Site_sigOTUs_alltax, file="Output_files/Dose_disease_state_Site_sigOTUs_alltax.csv")
+#Site_Timepoint
+Site_Timepoint= as.matrix(allpvalues_complete[,8])
+Site_Timepoint_padj=as.matrix(p.adjust(Site_Timepoint, method="fdr"))
+colnames(Site_Timepoint_padj)=c("padj")
+row.names(Site_Timepoint_padj)=row.names(allpvalues_complete)
+Site_Timepoint_sigOTUs=subset(Site_Timepoint_padj, Site_Timepoint_padj<0.05)
+Site_Timepoint_sigOTUs=as.data.frame(Site_Timepoint_sigOTUs)
+Site_Timepoint_sigOTUs$OTUID=row.names(Site_Timepoint_sigOTUs)
+Site_Timepoint_sigOTUs_tax=merge(Site_Timepoint_sigOTUs, ts, by="OTUID")
+Site_Timepoint_sigOTUs_alltax=merge(Site_Timepoint_sigOTUs_tax, tgg, by="OTUID")
+Site_Timepoint_sigOTUs_alltaxr=merge(Site_Timepoint_sigOTUs_alltax, allrsquare_complete, by.x="OTUID", by.y="row.names")
+colnames(Site_Timepoint_sigOTUs_alltaxr)[19]=c("pseudor2")
+write.csv(Site_Timepoint_sigOTUs_alltax, file="Site_Timepoint_sigOTUs_alltax.csv")
 
 
 #Dose_disease_state_Timepoint
