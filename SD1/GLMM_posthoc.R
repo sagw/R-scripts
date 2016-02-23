@@ -1,6 +1,7 @@
 rm(list=ls())
 require("ggplot2")
 require("reshape")
+library(wesanderson)
 
 setwd("~/Documents/SD1/SD1_analyses/")
 
@@ -22,41 +23,91 @@ Dose_disease_state_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Dose_dise
 Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 Timepoint_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Timepoint_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 Dose_Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
-T3_disease_state_Dose_disease_state_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/T3_disease_state_Dose_disease_state_sigOTUs_alltax.csv", header=TRUE, row.names=1)
-Dose_disease_state_Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Dose_disease_state_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
+Site_Dose_disease_state_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Site_Dose_disease_state_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 Site_Timepoint_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Site_Timepoint_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 Dose_disease_state_Timepoint_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Dose_disease_state_Timepoint_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 Site_Dose_Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Site_Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 Dose_disease_state_Dose_Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Dose_disease_state_Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 Timepoint_Dose_Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Timepoint_Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
-Dose_disease_state_Site_Timepoint_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Dose_disease_state_Site_Timepoint_sigOTUs_alltax.csv", header=TRUE, row.names=1)
-Dose_disease_state_Site_Dose_site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Dose_disease_state_Site_Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
+Site_Dose_disease_state_Timepoint_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Site_Dose_disease_state_Timepoint_sigOTUs_alltax.csv", header=TRUE, row.names=1)
+Site_Dose_disease_state_Dose_site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Site_Dose_disease_state_Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 Site_Timepoint_Dose_Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Site_Timepoint_Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 Dose_disease_state_Timepoint_Dose_Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Dose_disease_state_Timepoint_Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
-Dose_disease_state_Site_Timepoint_Dose_Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Dose_disease_state_Site_Timepoint_Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
+Site_Dose_disease_state_Timepoint_Dose_Site_sigOTUs_alltaxr=read.csv("Output_files/GLMM_results/Site_Dose_disease_state_Timepoint_Dose_Site_sigOTUs_alltax.csv", header=TRUE, row.names=1)
 
 
 #beneficial
 #OTUs significant in genotype and dose
-Geno_T3_dose=merge(Genotype_sigOTUs_alltaxr, T3_disease_state_Dose_disease_state_sigOTUs_alltaxr, by="OTUID")
-Geno_dose_time=merge(Geno_dose, Dose_disease_state_Timepoint_sigOTUs_alltaxr, by="OTUID")
+Geno_T3=merge(Genotype_sigOTUs_alltaxr, T3_disease_state_sigOTUs_alltaxr, by="OTUID")
+Geno_dose=merge(Genotype_sigOTUs_alltaxr, Dose_disease_state_sigOTUs_alltaxr, by="OTUID")
+Geno_T3_time=merge(Geno_T3, Timepoint_sigOTUs_alltaxr, by="OTUID")
 
 ##Find OTUs up in healthy
-c2norm_genoT3dose=c2norm[row.names(c2norm) %in% Geno_T3_dose$OTUID, ]
-b_genoT3dose=t(c2norm_genoT3dose)
-d_genoT3dose=cbind.data.frame(s1$Dose_disease_state, s1$T3_disease_state, s1$Timepoint, b_genoT3dose)
-colnames(d_genoT3dose)[1]="Dose_disease_state"
-colnames(d_genoT3dose)[2]="T3_disease_state"
-colnames(d_genoT3dose)[3]="Timepoint"
-#d_genoT3dose=d_genoT3dose[d_genoT3dose$Timepoint %in% c("two", "three"),]
+c2norm_genoT3=c2norm[row.names(c2norm) %in% Geno_T3$OTUID, ]
+b_genoT3=t(c2norm_genoT3)
+d_genoT3=cbind.data.frame(s1$Dose_disease_state, s1$T3_disease_state, s1$Timepoint, s1$Genotype, b_genoT3)
+colnames(d_genoT3)[1]="Dose_disease_state"
+colnames(d_genoT3)[2]="T3_disease_state"
+colnames(d_genoT3)[3]="Timepoint"
+colnames(d_genoT3)[4]="Genotype"
+d_genoT3=d_genoT3[d_genoT3$Timepoint %in% c("one","two", "three"),]
 
 #average diseased and healthy
-d_genoT3dose_dh=aggregate(. ~ Dose_disease_state:T3_disease_state:Timepoint, data=d_genoT3dose, FUN=mean)
-row.names(d_genoT3dose_dh)=paste(d_genoT3dose_dh$Dose_disease_state, d_genoT3dose_dh$T3_disease_state, d_genoT3dose_dh$Timepoint, sep="_")
-d_genoT3dose_dh=d_genoT3dose_dh[4:NCOL(d_genoT3dose_dh)]
-d_genoT3dose_dh=t(d_genoT3dose_dh)
-d_genoT3dose_dh=as.data.frame(d_genoT3dose_dh)
-d_genoT3dose_dh$DDT3vsHHT1=d_genoT3dose_dh$Healthy_Healthy_one-d_genoT3dose_dh$Diseased_Diseased_three
+d_genoT3_dh=aggregate(. ~ Dose_disease_state:T3_disease_state:Timepoint:Genotype, data=d_genoT3, FUN=mean)
+row.names(d_genoT3_dh)=paste(d_genoT3_dh$Dose_disease_state, d_genoT3_dh$T3_disease_state, d_genoT3_dh$Timepoint, sep="_")
+d_genoT3_dh=d_genoT3_dh[4:NCOL(d_genoT3_dh)]
+d_genoT3_dh=t(d_genoT3_dh)
+d_genoT3_dh=as.data.frame(d_genoT3_dh)
+geno_beneficial=subset(d_genoT3_dh, d_genoT3_dh$Healthy_Healthy_one>0&d_genoT3_dh$Healthy_Healthy_two>0&d_genoT3_dh$Healthy_Healthy_three>0)
+geno_beneficial$DDT3vsHHT1=geno_beneficial$Healthy_Healthy_one-geno_beneficial$Diseased_Diseased_three
+geno_beneficial$DDT3vsHHT3=geno_beneficial$Healthy_Healthy_three-geno_beneficial$Diseased_Diseased_three
+geno_beneficial$DDT2vsHHT2=geno_beneficial$Healthy_Healthy_two-geno_beneficial$Diseased_Diseased_two
+geno_beneficial$DHT2vsHHT2=geno_beneficial$Healthy_Healthy_two-geno_beneficial$Diseased_Healthy_two
+geno_beneficial$DHT3vsHHT3=geno_beneficial$Healthy_Healthy_three-geno_beneficial$Diseased_Healthy_three
+geno_beneficial_tax=merge(geno_beneficial, ts, by.x="row.names", by.y="OTUID")
+geno_beneficial2_tax=subset(geno_beneficial_tax, geno_beneficial_tax$DDT3vsHHT3>0&geno_beneficial_tax$DDT2vsHHT2>0&geno_beneficial_tax$DDT3vsHHT1>0)
+
+geno_beneficial2_defensive_tax=subset(geno_beneficial2_tax, geno_beneficial2_tax$DHT2vsHHT2>0&geno_beneficial2_tax$DHT3vsHHT3)
+
+c2norm_genoBen=c2norm[row.names(c2norm) %in% geno_beneficial2_tax$Row.names, ]
+b_genoBen=t(c2norm_genoBen)
+d_genoBen=cbind.data.frame(s1$Dose_disease_state, s1$T3_disease_state, s1$Timepoint, s1$Genotype, b_genoBen)
+colnames(d_genoBen)[1]="Dose_disease_state"
+colnames(d_genoBen)[2]="T3_disease_state"
+colnames(d_genoBen)[3]="Timepoint"
+colnames(d_genoBen)[4]="Genotype"
+d_genoBen=d_genoBen[d_genoBen$Timepoint %in% c("one","two", "three"),]
+d_genoBen_agg=aggregate(. ~ T3_disease_state:Genotype, data=d_genoBen, FUN=mean)
+row.names(d_genoBen_agg)=paste(d_genoBen_agg$T3_disease_state, d_genoBen_agg$Genotype, sep="_")
+d_genoBen_agg=d_genoBen_agg[5:NCOL(d_genoBen_agg)]
+d_genoBen_agg=t(d_genoBen_agg)
+d_genoBen_agg=as.data.frame(d_genoBen_agg)
+genoBen_tax=merge(d_genoBen_agg, ts, by.x="row.names", by.y="OTUID")
+genoBen_tax$OTUID=row.names(genoBen_tax)
+table(genoBen_tax$family_s)
+genoBen_tax_endo=genoBen_tax[genoBen_tax$family_s=="Hahellaceae",]
+colnames(genoBen_tax_endo)=c("OTUID", "D_B_CK14", "H_B_CK14", "D_B_CK4", "H_B_CK4", "D_G_CK14",
+                             "H_G_CK14", "D_G_CK4", "H_G_CK4", "D_O_CK14","H_O_CK14",
+                             "D_O_CK4", "H_O_CK4", "D_P_CK14", "H_P_CK14", "D_P_CK4",
+                             "H_P_CK4", "D_W_CK14", "H_W_CK14",  "D_W_CK4", "H_W_CK4",
+                             "kingdom_s", "phylum_s", "class_s", "order_s", "family_s", "genus_s",
+                             "species_s", "evalue", "ref", "no")
+
+otu.long_h = melt(genoBen_tax_endo, id = c("OTUID", "family_s"), measure = c("D_B_CK14", "H_B_CK14", "D_B_CK4", "H_B_CK4", "D_G_CK14",
+                                                                        "H_G_CK14", "D_G_CK4", "H_G_CK4", "D_O_CK14","H_O_CK14",
+                                                                        "D_O_CK4", "H_O_CK4", "D_P_CK14", "H_P_CK14", "D_P_CK4",
+                                                                        "H_P_CK4", "D_W_CK14", "H_W_CK14",  "D_W_CK4", "H_W_CK4" ))
+otu.long_h$OTUID = factor(otu.long_h$OTUID, levels = otu.long_h$OTUID[order(otu.long_h$family_s)])
+plotgb=ggplot(data=otu.long_h, aes(x=OTUID, y=value )) +
+  geom_bar(aes(fill=family_s), stat="identity") + 
+  theme_bw()+ theme(legend.position = "left") +
+  ggtitle("Genotype specific healthy symbionts") +
+  facet_grid(.~variable, scale="free_y") + ylim(0,45)+coord_flip() 
+
+  plotgb
+
+
+
 d_genoT3dose_dh$DDT3vsHHT3=d_genoT3dose_dh$Healthy_Healthy_three-d_genoT3dose_dh$Diseased_Diseased_three
 d_genoT3dose_dh$DDT2vsHHT2=d_genoT3dose_dh$Healthy_Healthy_two-d_genoT3dose_dh$Diseased_Diseased_two
 d_genoT3dose_dh$DDT2vsDHT2=d_genoT3dose_dh$Diseased_Healthy_two-d_genoT3dose_dh$Diseased_Diseased_two
@@ -248,7 +299,6 @@ colnames(d_T3ex3)[3]="Timepoint"
 #check order of samples
 check=cbind(row.names(d_T3ex3), s1[1:1])
 
-
 #average diseased and healthy
 ##T3 disease state
 d_T3ex3_dh=aggregate(. ~T3_disease_state:Dose_disease_state:Timepoint, data=d_T3ex3, FUN=mean)
@@ -258,26 +308,43 @@ d_T3ex3_dh=t(d_T3ex3_dh)
 d_T3ex3_dh=as.data.frame(d_T3ex3_dh)
 d_T3ex3_dh$DvH=d_T3ex3_dh$Diseased_Diseased_two-d_T3ex3_dh$Healthy_Healthy_two
 
+
 UpT2D=subset(d_T3ex3_dh, d_T3ex3_dh$Diseased_Diseased_two>0&d_T3ex3_dh$Diseased_Diseased_three>0&d_T3ex3_dh$Diseased_Diseased_dose>0&d_T3ex3_dh$Healthy_Diseased_two==0)
 UpT2Dtax=merge(UpT2D, ts, by.x="row.names", by.y="OTUID")
 UpT2Dtax$DvHdose=UpT2Dtax$Diseased_Diseased_dose-UpT2Dtax$Healthy_Healthy_dose
 UpT2Dtax$DvHT2=UpT2Dtax$Diseased_Diseased_two-UpT2Dtax$Healthy_Healthy_two
 UpT2Dtax$DvHT3=UpT2Dtax$Diseased_Diseased_three-UpT2Dtax$Healthy_Healthy_three
 UpT2DtaxUp=subset(UpT2Dtax, UpT2Dtax$DvHdose>0&UpT2Dtax$DvHT2>0&UpT2Dtax$DvHT3>0)
-colnames(UpT2DtaxUp)[1]="OTUID"
+colnames(UpT2DtaxUp)= c("OTUID", "D_D_dose", "H_H_dose", "H_H_T1", "D_D_T3",
+                        "D_H_T3", "H_H_T3", "D_D_T2", "D_H_T2", "H_D_T2",
+                        "H_H_T2", "DvH", "kingdom_s", "phylum_s", "class_s",
+                        "order_s", "family_s", "genus_s", "species_s",               
+                        "evalue", "ref", "DvHdose", "DvHT2", "DvHT3")  
+UpT2DtaxUp$H_D_T2=NULL
+UpT2DtaxUpfs=subset(UpT2DtaxUp, UpT2DtaxUp$family_s=="Pasteurellaceae"|UpT2DtaxUp$family_s=="Francisellaceae")
 
-otu.long_d = melt(UpT2DtaxUp, id = c("OTUID", "family_s"), 
-                  measure = c("Diseased_Diseased_dose","Healthy_Healthy_dose", "Healthy_Healthy_one",
-                              "Diseased_Diseased_three", "Diseased_Healthy_three", "Healthy_Healthy_three",
-                              "Diseased_Diseased_two", "Diseased_Healthy_two", "Healthy_Healthy_two"))
+counts=as.data.frame(table(UpT2DtaxUp$family_s))
+counts=counts[order(-counts$Freq),]
+otu.long_d = melt(UpT2DtaxUpfs, id = c("OTUID","family_s"), 
+                  measure = c("H_H_dose", "D_D_dose", "H_H_T1", "H_H_T2", 
+                              "D_H_T2", "D_D_T2", "H_H_T3", "D_H_T3", "D_D_T3"
+                              ))
+otu.long_d$variable = factor(otu.long_d$variable, levels = c("H_H_dose", "D_D_dose", "H_H_T1", "H_H_T2", 
+                                                             "D_H_T2", "D_D_T2", "H_H_T3", "D_H_T3", "D_D_T3"))
 otu.long_d$OTUID = factor(otu.long_d$OTUID, levels = otu.long_d$OTUID[order(otu.long_d$family_s)])
+
+
+pdf(file="Output_files/GLMM_results/Primary_pathogens_fp.pdf", width=5, height=7)
 plotgb=ggplot(data=otu.long_d, aes(x=OTUID, y=value ))+
-  geom_bar(aes(fill=family_s), stat="identity") + coord_flip() + theme_bw() +
+  geom_bar(aes(fill=family_s), stat="identity") + theme_bw() +
   theme(legend.position = "left") +
-  ggtitle("Primary pathogens") +
-  facet_grid(.~variable, scale="free_y")
+  ggtitle("Primary pathogens") + 
+  facet_grid(variable~., scale="free_y")+ ylim(0,160)
+plotgb=plotgb + theme(axis.text.x = element_blank(), panel.grid.major.x = element_blank()) +
+  scale_x_discrete("OTUID")+scale_fill_manual(values=wes_palette(n=2, name="Moonrise2"))
 plotgb
 
+dev.off()
 
 
 
