@@ -31,9 +31,6 @@ colnames(d_P_F)[1]="T3_disease_state"
 colnames(d_P_F)[2]="Dose_disease_state"
 colnames(d_P_F)[3]="Timepoint"
 
-#check order of samples
-check=cbind(row.names(d_T3ex3), s1[1:1])
-
 d_P_F_split=split(d_P_F, with(d_P_F, interaction(Dose_disease_state,T3_disease_state,Timepoint)), drop = TRUE)
 d_P_F_split=lapply(d_P_F_split, function(x) {x[1:3]=list(NULL);x})
 list2env(d_P_F_split, environment())
@@ -187,9 +184,6 @@ d_P_a=cbind.data.frame(s1_s, b_P_a)
 colnames(d_P_a)[1]="T3_disease_state"
 colnames(d_P_a)[2]="Dose_disease_state"
 colnames(d_P_a)[3]="Timepoint"
-
-#check order of samples
-check=cbind(row.names(d_T3ex3), s1[1:1])
 
 d_P_a_split=split(d_P_a, with(d_P_a, interaction(Dose_disease_state,T3_disease_state,Timepoint)), drop = TRUE)
 d_P_a_split=lapply(d_P_a_split, function(x) {x[1:3]=list(NULL);x})
@@ -504,30 +498,36 @@ full_full_one=full_full[full_full$Time=="T1",]
 full_full_one$Treatments="Dosed"
 full_full_T123=full_full[!full_full$Time=="Inoculant",]
 full_full_1234=rbind(full_full_T123, full_full_one)
+frame$grp <- paste(frame[,1],frame[,2])
+full_full_1234$interaction=paste(full_full_1234$Treatments, full_full_1234$Result)
+
 ##plot
 dodge=position_dodge(width=0.9)
-pdf(file="Output_files/GLMM_results/plots/Primary_colonizers_complete.pdf", width=6, height=20)
-plot=ggplot(data=full_full_1234, aes(x=Time, y=mean, group=Result, shape=Result, colour=Family)) + 
+plot=ggplot(data=full_full_1234, aes(x=Time, y=mean, group=Family, shape=interaction, fill=Family, colour=Family)) + 
   geom_point(aes(size=Number_OTUs))+
   geom_errorbar(aes(ymin=mean-SE, ymax=mean+SE), width=0.05, colour="black")+
-  theme_bw()+ facet_grid(Family+Treatments~., scale="free_y")+ ylim(-1,22)+
-  geom_line()+ scale_shape_manual(values=c( 19, 1)) + 
+  theme_bw()+ ylim(-1,5)+
+  geom_line()+ scale_shape_manual(values=c( 2, 21, 1)) + 
   scale_color_manual(values=c("#E6A0C4", "#F1BB7B", "#0B775E", "#5B1A18", "#3B9AB2", "#798E87", 
                               "#E58601", "#7294D4", "#FD6467")) +
+  scale_fill_manual(values=c("#E6A0C4", "#F1BB7B", "#0B775E", "#5B1A18", "#3B9AB2", "#798E87", 
+                              "#E58601", "#7294D4", "#FD6467"))+
   theme(plot.margin=unit(c(5,5,5,5), "cm")) +
   scale_x_discrete(expand=c(0.5, 0))
 plot
-ggsave(plot=plot,height=30,width=8,dpi=1000, filename="Output_files/GLMM_results/plots/Primary_colonizers_Time.pdf", useDingbats=FALSE)
+ggsave(plot=plot,height=30,width=8,dpi=1000, filename="Output_files/GLMM_results/plots/Primary_colonizers_T_all_high.pdf", useDingbats=FALSE)
 
 ##plot doses
 dodge=position_dodge(width=0.9)
-plot=ggplot(data=full_full_dose, aes(x=Time, y=mean, shape=Result, colour=Family)) + 
+plot=ggplot(data=full_full_dose, aes(x=Time, y=mean, shape=Result, colour=Family, fill=Family)) + 
   geom_point(aes(size=Number_OTUs))+
   geom_errorbar(aes(ymin=mean-SE, ymax=mean+SE), width=0.05, colour="black")+
   theme_bw()+ facet_grid(Family+Treatments~., scale="free_y")+ ylim(-1,15)+
-  scale_shape_manual(values=c( 1, 19)) + 
+  scale_shape_manual(values=c( 2, 21)) + 
   scale_color_manual(values=c("#E6A0C4", "#F1BB7B", "#0B775E", "#5B1A18", "#3B9AB2", "#798E87", 
                               "#E58601", "#7294D4", "#FD6467")) +
+  scale_fill_manual(values=c("#E6A0C4", "#F1BB7B", "#0B775E", "#5B1A18", "#3B9AB2", "#798E87", 
+                             "#E58601", "#7294D4", "#FD6467"))+
   scale_x_discrete(expand=c(0.5, 0))
 plot
-ggsave(plot=plot,height=15,width=4,dpi=1000, filename="Output_files/GLMM_results/plots/Primary_colonizers_Doses.pdf", useDingbats=FALSE)
+ggsave(plot=plot,height=15,width=4,dpi=1000, filename="Output_files/GLMM_results/plots/Primary_colonizers_Doses_full.pdf", useDingbats=FALSE)
